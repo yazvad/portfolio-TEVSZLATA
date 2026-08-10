@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Портфолио. Дизайнер</title>
+<style>
+  :root{
+    --bg:#0d0d0d;
+    --panel:#151515;
+    --line:rgba(255,255,255,.16);
+    --ink:#f2f2f0;
+    --muted:rgba(255,255,255,.45);
+    --gap:1.6rem;
+    --edge:clamp(18px,2.2vw,40px);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:var(--bg);color:var(--ink);
+    font-family:"Helvetica Neue","HelveticaNeue",Helvetica,Arial,sans-serif;
+    font-size:15px;line-height:1.5;letter-spacing:.005em;font-weight:400;
+    -webkit-font-smoothing:antialiased;
+    height:100vh;overflow:hidden;
+  }
+
+  .layout{display:grid;grid-template-columns:4fr 2fr;height:100vh}
+  .pane{
+    height:100vh;overflow-y:auto;overflow-x:hidden;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.2) transparent;
+  }
+  .pane::-webkit-scrollbar{width:8px}
+  .pane::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:8px}
+  .left{padding:var(--edge)}
+  .right{padding:var(--edge);border-left:1px solid var(--line)}
+
+  .g4{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--gap);align-items:start}
+  .g2{display:grid;grid-template-columns:1fr 2fr;gap:var(--gap);align-items:start}
+
+  .eyebrow{color:var(--muted);display:block;margin-bottom:1em;font-size:14px}
+  p{margin:0}
+  .lede{font-weight:600}
+  a{color:var(--ink)}
+
+  [contenteditable]{outline:none;transition:box-shadow .15s;border-radius:2px}
+  [contenteditable]:hover{box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)}
+  [contenteditable]:focus{box-shadow:inset 0 0 0 1px rgba(255,255,255,.3)}
+
+  .title{grid-column:1 / 4;font-size:clamp(38px,6.2vw,100px);line-height:.94;font-weight:700;
+    letter-spacing:-.02em;color:#9a9a98;margin:0 0 38px;align-self:center}
+  /* высота фото = высоте двух строк заголовка (надпись переносится на 2 строки) */
+  .head-photo{grid-column:4;grid-row:1;align-self:center;justify-self:start;
+    height:calc(clamp(38px,6.2vw,100px) * 0.94 * 2);width:calc(clamp(38px,6.2vw,100px) * 0.94 * 2);
+    max-width:100%;max-height:100%;
+    aspect-ratio:1/1;margin-bottom:0;position:relative;
+    background:var(--panel);border:1px dashed rgba(255,255,255,.2);border-radius:2px;
+    overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    color:var(--muted);font-size:12px;text-align:center}
+  .head-photo:hover{border-color:rgba(255,255,255,.45)}
+  .head-photo img{width:100%;height:100%;object-fit:cover;display:block}
+  .head-photo .hint{padding:8px;pointer-events:none}
+  .head-photo input[type=file]{display:none}
+  .sub{color:var(--ink)}
+  .sub1{grid-column:1}.sub2{grid-column:2}.sub3{grid-column:3}
+  .head-rule{grid-column:1 / -1;border:none;border-top:1px solid var(--line);margin:32px 0 0}
+
+  .case{margin-top:40px}
+  .case-no{grid-column:1;grid-row:1;font-size:clamp(70px,6.6vw,150px);line-height:.78;
+    font-weight:700;letter-spacing:-.03em;align-self:start}
+  .col-brief {grid-column:2;grid-row:1}
+  .col-task  {grid-column:3;grid-row:1}
+  .col-result{grid-column:4;grid-row:1}
+
+  .slider{grid-column:2 / 5;grid-row:2;aspect-ratio:16/9;position:relative;margin-top:36px;
+    background:var(--panel);border:1px solid rgba(255,255,255,.12);border-radius:2px;overflow:hidden}
+  .slides{position:absolute;inset:0}
+  .slide{position:absolute;inset:0;opacity:0;transition:opacity .8s ease}
+  .slide.active{opacity:1}
+  .slide img,.slide video{width:100%;height:100%;object-fit:cover;display:block}
+  .slider-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    color:var(--muted);text-align:center;font-size:14px;padding:20px;cursor:pointer}
+  .slider-empty:hover{color:var(--ink)}
+  .nav{position:absolute;top:0;bottom:0;width:22%;cursor:pointer;z-index:3;display:flex;align-items:center;opacity:0;transition:opacity .2s}
+  .slider:hover .nav{opacity:1}
+  .nav.prev{left:0;justify-content:flex-start;padding-left:14px}
+  .nav.next{right:0;justify-content:flex-end;padding-right:14px}
+  .nav span{color:#fff;font-size:22px;background:rgba(0,0,0,.35);width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+  .dots{position:absolute;bottom:12px;left:0;right:0;display:flex;gap:7px;justify-content:center;z-index:3}
+  .dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.35);cursor:pointer}
+  .dot.active{background:#fff}
+  .add-slide{position:absolute;top:12px;right:12px;z-index:4;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:12px;padding:6px 11px;border-radius:100px;cursor:pointer;font-family:inherit;opacity:0;transition:opacity .2s}
+  .slider:hover .add-slide{opacity:1}
+  .del-slide{position:absolute;top:48px;right:12px;z-index:4;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:12px;padding:6px 11px;border-radius:100px;cursor:pointer;font-family:inherit;opacity:0;transition:opacity .2s}
+  .slider:hover .del-slide{opacity:1}
+  .slider:not(.has-media) .del-slide{display:none}
+  body.viewing .del-slide{display:none!important}
+  .expand-slider{position:absolute;bottom:12px;right:12px;z-index:4;background:rgba(0,0,0,.5);
+    border:1px solid rgba(255,255,255,.25);color:#fff;font-size:12px;line-height:1;
+    width:26px;height:26px;border-radius:50%;cursor:pointer;font-family:inherit;
+    display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s}
+  .slider:hover .expand-slider{opacity:1}
+  .slider:not(.has-media) .expand-slider{display:none}
+  body.viewing .slider .expand-slider{opacity:.85}
+
+  /* research: ссылка (кол.1) + компактная стопка-презентация (кол.2) + текст (кол.3-4) */
+  .research-link{grid-column:1;grid-row:3;font-size:14px;margin-top:44px}
+  .research-link a{text-decoration:none;border-bottom:1px solid var(--line);padding-bottom:2px}
+  .research-link a:hover{border-color:var(--ink)}
+
+  /* ---- миниатюра-презентация: маленькая аккуратная стопка ---- */
+  .deck{grid-column:2;grid-row:3;margin-top:44px;position:relative;width:170px;height:120px;cursor:pointer}
+  .deck .card{position:absolute;inset:0;background:var(--panel);border:1px solid rgba(255,255,255,.14);
+    border-radius:2px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.5);transition:transform .25s}
+  .deck .card img,.deck .card video{width:100%;height:100%;object-fit:cover;display:block}
+  .deck .card:nth-child(1){transform:translate(10px,10px) rotate(2deg);z-index:1}
+  .deck .card:nth-child(2){transform:translate(5px,5px) rotate(-1.5deg);z-index:2}
+  .deck .card:nth-child(3){transform:translate(0,0);z-index:3}
+  .deck:hover .card:nth-child(1){transform:translate(14px,12px) rotate(3deg)}
+  .deck:hover .card:nth-child(2){transform:translate(7px,6px) rotate(-2deg)}
+  .deck .empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    border:1px dashed rgba(255,255,255,.2);border-radius:2px;color:var(--muted);font-size:12px;z-index:5;text-align:center;padding:8px}
+  .deck-label{grid-column:2;grid-row:3;align-self:end;margin-top:44px;pointer-events:none}
+  .deck-cap{margin-top:8px;font-size:12px;color:var(--muted)}
+
+  .research-copy{grid-column:3 / 5;grid-row:3;margin-top:44px}
+
+  .case-rule{grid-column:1 / -1;grid-row:4;border:none;border-top:1px solid var(--line);margin:56px 0 0}
+
+  .slot{position:relative;background:var(--panel);border:1px dashed rgba(255,255,255,.16);
+    border-radius:2px;overflow:hidden;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;color:var(--muted);font-size:13px;text-align:center}
+  .slot input[type=file]{display:none}
+
+  /* резюме */
+  .res-block{padding:26px 0;border-top:1px solid var(--line)}
+  .res-block:first-child{border-top:none;padding-top:0}
+  .res-label{color:var(--muted);font-size:14px}
+  .res-body p + p{margin-top:1em}
+  .res-body h4{margin:0 0 .8em;font-size:14px;font-weight:600}
+  .res-body h4.mt{margin-top:1.4em}
+  .res-add{margin-top:20px;display:flex;gap:8px;flex-wrap:wrap}
+  .mini{background:#1c1c1c;color:var(--ink);border:1px solid var(--line);padding:7px 12px;border-radius:100px;font-size:12px;cursor:pointer;font-family:inherit}
+  .mini:hover{background:#262626}
+
+  /* ================= ЛАЙТБОКС ПРЕЗЕНТАЦИИ ================= */
+  .lightbox{position:fixed;inset:0;background:rgba(8,8,8,.96);z-index:200;display:none;
+    flex-direction:column;padding:clamp(16px,3vw,48px)}
+  .lightbox.open{display:flex}
+  .lb-top{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:13px;margin-bottom:14px}
+  .lb-close{background:none;border:1px solid var(--line);color:var(--ink);width:34px;height:34px;
+    border-radius:50%;cursor:pointer;font-size:16px;font-family:inherit}
+  .lb-close:hover{background:#222}
+  .lb-del{background:none;border:1px solid var(--line);color:var(--ink);padding:0 12px;height:34px;
+    border-radius:100px;cursor:pointer;font-size:13px;font-family:inherit}
+  .lb-del:hover{background:#3a1f1f;border-color:#7a3b3b}
+  body.viewing .lb-del{display:none!important}
+  .lb-stage{flex:1;position:relative;display:flex;align-items:center;justify-content:center;min-height:0}
+  .lb-frame{max-width:100%;max-height:100%;position:relative;display:flex;align-items:center;justify-content:center}
+  .lb-frame img,.lb-frame video{max-width:100%;max-height:72vh;object-fit:contain;display:block}
+  .lb-arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:5;background:rgba(0,0,0,.4);
+    border:1px solid rgba(255,255,255,.25);color:#fff;width:46px;height:46px;border-radius:50%;
+    cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center}
+  .lb-arrow:hover{background:rgba(0,0,0,.7)}
+  .lb-arrow.prev{left:6px}
+  .lb-arrow.next{right:6px}
+  .lb-thumbs{display:flex;gap:10px;justify-content:center;flex-wrap:nowrap;overflow-x:auto;
+    padding:16px 4px 4px;scrollbar-width:thin}
+  .lb-thumb{width:88px;height:60px;flex:0 0 auto;border-radius:2px;overflow:hidden;cursor:pointer;
+    border:2px solid transparent;opacity:.55;transition:opacity .2s}
+  .lb-thumb img,.lb-thumb video{width:100%;height:100%;object-fit:cover;display:block}
+  .lb-thumb.active{border-color:#fff;opacity:1}
+  .lb-thumb:hover{opacity:.85}
+
+  /* адаптив */
+  @media(max-width:1200px){.layout{grid-template-columns:3fr 2fr}}
+  @media(max-width:980px){
+    .g4{grid-template-columns:repeat(2,1fr)}
+    .title{grid-column:1 / -1;grid-row:2}
+    .head-photo{grid-column:1 / -1;grid-row:1;justify-self:start;
+      height:clamp(120px,34vw,220px);width:clamp(120px,34vw,220px);margin-bottom:20px}
+    .sub1{grid-column:1;grid-row:3}.sub2{grid-column:2;grid-row:3}.sub3{grid-column:1 / -1;grid-row:4}
+    .case-no{grid-column:1 / -1;grid-row:1}
+    .col-brief{grid-column:1;grid-row:2}.col-task{grid-column:2;grid-row:2}.col-result{grid-column:1 / -1;grid-row:3}
+    .slider{grid-column:1 / -1;grid-row:4}
+    .research-link{grid-column:1 / -1;grid-row:5;margin-top:32px}
+    .deck,.deck-label{grid-column:1;grid-row:6;margin-top:20px}
+    .research-copy{grid-column:2;grid-row:6;margin-top:20px}
+    .case-rule{grid-row:7}
+  }
+  @media(max-width:820px){
+    body{height:auto;overflow:visible}
+    .layout{display:block;height:auto}
+    .pane{height:auto;overflow:visible}
+    .right{border-left:none;border-top:1px solid var(--line)}
+  }
+  @media(max-width:600px){
+    .g4{grid-template-columns:1fr}.g2{grid-template-columns:1fr}
+    .sub1{grid-column:1;grid-row:3}.sub2{grid-column:1;grid-row:4}.sub3{grid-column:1;grid-row:5}
+    .col-brief,.col-task,.col-result{grid-column:1}
+    .col-brief{grid-row:2}.col-task{grid-row:3}.col-result{grid-row:4}
+    .slider{grid-row:5}.research-link{grid-row:6}
+    .deck,.deck-label{grid-column:1;grid-row:7}.research-copy{grid-column:1;grid-row:8}.case-rule{grid-row:9}
+    .title{font-size:clamp(40px,12vw,72px)}
+  }
+
+  .toolbar{position:fixed;right:16px;bottom:16px;display:flex;gap:8px;z-index:50}
+  .btn{background:#1c1c1c;color:var(--ink);border:1px solid var(--line);padding:10px 15px;border-radius:100px;font-size:13px;cursor:pointer;font-family:inherit}
+  .btn:hover{background:#262626}
+  .btn.primary{background:#f2f2f0;color:#111;border-color:#f2f2f0}
+  .btn.primary:hover{background:#fff}
+
+  /* ================= РЕЖИМ ПРОСМОТРА ================= */
+  /* прячем весь редакторский обвес и пустые заготовки */
+  body.viewing [contenteditable="true"]{pointer-events:none}
+  body.viewing [contenteditable] a{pointer-events:auto;cursor:pointer}
+  body.viewing [contenteditable]:hover,
+  body.viewing [contenteditable]:focus{box-shadow:none}
+  body.viewing .add-slide,
+  body.viewing .res-add,
+  body.viewing #edit-tools{display:none!important}
+  /* слайдер без загрузочной подсказки; если пусто — прячем весь слайдер */
+  body.viewing .slider-empty{display:none!important}
+  body.viewing .head-photo{cursor:default;border:none!important;background:transparent}
+  body.viewing .head-photo:hover{border:none!important}
+  body.viewing .head-photo .hint{display:none!important}
+  body.viewing .head-photo:not(.has-photo){display:none!important}
+  body.viewing .slider:not(.has-media){display:none!important}
+  /* стопка без подсказки; если пусто — прячем стопку и подпись */
+  body.viewing .deck .empty{display:none!important}
+  body.viewing .deck:not(.has-media){display:none!important}
+  /* в просмотре стопка кликается только если есть слайды (курсор-указатель оставляем) */
+  body.viewing .deck-cap{opacity:.75}
+
+  /* ===== всплывающая панель форматирования ===== */
+  .fmt-bar{
+    position:fixed;z-index:300;display:none;align-items:center;gap:2px;
+    background:#1b1b1b;border:1px solid rgba(255,255,255,.16);border-radius:10px;
+    padding:5px 7px;box-shadow:0 10px 30px rgba(0,0,0,.5);
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  }
+  .fmt-bar.show{display:flex}
+  .fmt-btn{
+    background:none;border:none;color:#f2f2f0;cursor:pointer;font-family:inherit;
+    font-size:13px;padding:6px 9px;border-radius:6px;line-height:1;min-width:32px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .fmt-btn:hover{background:rgba(255,255,255,.12)}
+  .fmt-btn b,.fmt-btn i,.fmt-btn u{font-size:14px}
+  .fmt-sep{width:1px;height:20px;background:rgba(255,255,255,.16);margin:0 3px}
+  .fmt-color{position:relative;overflow:hidden}
+  .fmt-color span{width:18px;height:18px;border-radius:4px;display:block;border:1px solid rgba(255,255,255,.3)}
+  .fmt-color input[type=color]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;padding:0;border:none}
+  body.viewing .fmt-bar{display:none!important}
+  /* подчёркивание ссылок в тексте */
+  .left a,.right a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+
+  @media print{
+    body{height:auto;overflow:visible}.layout{display:block}.pane{height:auto;overflow:visible}
+    .toolbar,.nav,.dots,.add-slide,.res-add,.fmt-bar{display:none}.lightbox{display:none!important}
+  }
+</style>
+</head>
+<body class="viewing">
+<div class="layout"><div class="pane left"><div class="g4">
+      <h1 class="title" contenteditable="false">ПОРТФОЛИО. ДИЗАЙНЕР</h1>
+      <div class="head-photo has-photo">
+        
+        
+      <img src="assets/img-108.jpg"></div>
+      <p class="sub sub1" contenteditable="false">Мультидисциплинарный подход к визуальным системам и интерфейсам</p>
+      <p class="sub sub2" contenteditable="false">Фокус — структура, визуальный язык и адаптация под контекст</p>
+      <p class="sub sub3" contenteditable="false">#айдентика<br>#мобильные приложения<br>#графический дизайн<br>#предметный дизайн 3Д</p>
+      <hr class="head-rule">
+    </div><div id="cases">
+      <section class="g4 case">
+        <div class="case-no" contenteditable="false">1</div>
+
+        <div class="col-brief">
+          <span class="eyebrow" contenteditable="false">Кейс 1</span>
+          <p class="lede" contenteditable="false"><b>Sip Ai</b></p>
+          <p contenteditable="false">Mobile Application / 2025</p>
+          <p contenteditable="false" style="margin-top:1em">Приложение, которое подбирает коктейли под настроение, блюдо или ингредиенты, что уже есть дома.</p>
+        </div>
+        <div class="col-task">
+          <span class="eyebrow" contenteditable="false">Задача</span>
+          <p contenteditable="false">Люди хотят готовить интересные напитки дома, но теряются: не знают, что выбрать, как подобрать к моменту и что смешать из случайного набора бутылок.</p>
+          <p contenteditable="false" style="margin-top:1em">Нужно было убрать страх ошибки и сократить путь от желания до готового напитка.</p>
+        </div>
+        <div class="col-result">
+          <span class="eyebrow" contenteditable="false">Результат</span>
+          <p contenteditable="false">Персональный подбор по настроению, блюду или доступным ингредиентам. Сканирование барной полки заменяет долгий поиск рецепта.</p>
+          <p contenteditable="false" style="margin-top:1em">Домашний бар становится простым и понятным — можно не просто пить, а творить.</p>
+        </div>
+
+        <div class="slider has-media" data-slider="" data-sid="sl-0" data-cur="3">
+          <div class="slides"></div>
+          
+          <div class="nav prev" onclick="slidePrev(this)"><span>‹</span></div>
+          <div class="nav next" onclick="slideNext(this)"><span>›</span></div>
+          
+          <button class="del-slide" title="Удалить этот слайд" onclick="delSlide(this)">🗑 слайд</button>
+          <button class="expand-slider" title="На весь экран" onclick="openSlider(this)">⤢</button>
+          <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot active"></div><div class="dot"></div></div>
+        </div>
+
+        <div class="research-link" contenteditable="false">Изучить исследование → <a href="https://vimeo.com/1097409872/96e4e3d9cd?share=copy&amp;fl=cl&amp;fe=ci" target="_blank" rel="noopener">скринкаст приложения</a></div>
+
+        <div class="deck has-media" data-deck="" onclick="openDeck(this)" data-did="dk-0">
+          <div class="stack"></div>
+          
+          <div class="deck-cap" style="">Презентация →</div>
+        </div>
+
+        <div class="research-copy" contenteditable="false">
+          <p contenteditable="false">В основе — глубинное исследование аудитории 18–35 лет. Оно показало три барьера: 43% путаются в сложных ингредиентах, 75% считают рецепты слишком трудными, 87% хотят готовить из того, что уже есть дома.</p>
+          <p contenteditable="false" style="margin-top:1em">Эти инсайты легли в ядро продукта: персонализация вместо каталога, подбор по наличию вместо походов в магазин, короткий путь вместо длинных рецептов. Спроектированы пользовательские сценарии и полная карта приложения — от подбора и генерации напитка до «Моего бара» с историей и прогрессом.</p>
+        </div>
+
+        <hr class="case-rule">
+      </section>
+      <section class="g4 case">
+        <div class="case-no" contenteditable="false">2</div>
+
+        <div class="col-brief">
+          <span class="eyebrow" contenteditable="false">Кейс 2</span>
+          <p class="lede" contenteditable="false"><b>КВК «Ботанические оранжереи»</b></p>
+          <p contenteditable="false">Brand Identity / 2026</p>
+          <p contenteditable="false" style="margin-top:.6em;color:#7ba7d4"><font color="#96dbf4">✱ <a href="https://vk.ru/wall-96891566_11581" target="_blank" rel="noopener">Призер конкурса на брендинг</a></font></p>
+          <p contenteditable="false" style="margin-top:.6em;color:#7ba7d4"><font color="#96dbf4">✱ Финалист конкурса DAFES</font></p>
+          <p contenteditable="false" style="margin-top:1em">Айдентика КВК в музее-заповеднике Архангельское — культурного центра внутри исторических оранжерей.</p>
+        </div>
+        <div class="col-task">
+          <span class="eyebrow" contenteditable="false">Задача</span>
+          <p contenteditable="false">КВК объединяет несопоставимое: наследие музея и современные практики — выставки, кино, лекции, детские программы.</p>
+          <p contenteditable="false" style="margin-top:1em">Нужен был визуальный язык, который показывает связь с музеем и его новый формат одновременно, и с первого взгляда объясняет случайному прохожему, что здесь происходит и почему стоит зайти.</p>
+        </div>
+        <div class="col-result">
+          <span class="eyebrow" contenteditable="false">Результат</span>
+          <p contenteditable="false">Получился гибкий системный стиль, который объединяет разные форматы: выставки, кино, лекции, детские программы в один узнаваемый визуальный язык.</p>
+          <p contenteditable="false" style="margin-top:1em">Он связывает наследие музея с современным форматом центра и работает на любом носителе, от афиши до цифровых экранов. Единая логика делает бренд цельным и живым, а не набором разрозненных элементов.</p>
+        </div>
+
+        <div class="slider has-media" data-slider="" data-sid="sl-1" data-cur="4">
+          <div class="slides"></div>
+          
+          <div class="nav prev" onclick="slidePrev(this)"><span>‹</span></div>
+          <div class="nav next" onclick="slideNext(this)"><span>›</span></div>
+          
+          <button class="del-slide" title="Удалить этот слайд" onclick="delSlide(this)">🗑 слайд</button>
+          <button class="expand-slider" title="На весь экран" onclick="openSlider(this)">⤢</button>
+          <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot active"></div></div>
+        </div>
+
+        <div class="research-link" contenteditable="false"><a href="#">Изучить исследование →</a></div>
+
+        <div class="deck has-media" data-deck="" onclick="openDeck(this)" data-did="dk-1">
+          <div class="stack"></div>
+          
+          <div class="deck-cap" style="">Презентация →</div>
+        </div>
+
+        <div class="research-copy" contenteditable="false">
+          <p contenteditable="false">В основе — анализ конкурентов (Переделкино, Музейная четвёрка, ГЭС-2) и портрет аудитории: человек, который выбирает досуг спонтанно, по визуалу и простому объяснению, зачем идти.</p>
+          <p contenteditable="false" style="margin-top:1em">Айдентика держится на трёх ценностях: синтез эпох, доступность, просвещение. Ключевое решение — генеративность: узоры не рисуются вручную, а собираются в Processing. Программа считывает контраст чёрно-белого исходника и раскладывает насыщенные модули на тёмные участки, воздушные — на светлые. Так стиль расширяется быстро и в единой логике — система, а не набор картинок.</p>
+        </div>
+
+        <hr class="case-rule">
+      </section>
+      <section class="g4 case">
+        <div class="case-no" contenteditable="false">3</div>
+
+        <div class="col-brief">
+          <span class="eyebrow" contenteditable="false">Кейс 3</span>
+          <p class="lede" contenteditable="false"><b>annki × hse</b></p>
+          <p contenteditable="false">Product / Furniture Design / 2026</p>
+          <p contenteditable="false" style="margin-top:.6em;color:#7ba7d4"><font color="#96dbf4">✱ 2 место конкурса DAFES</font></p>
+          <p contenteditable="false" style="margin-top:1em">Коллекция предметов, построенных на фирменной форме клевера (clover 2.0) — от кресла до фурнитуры.</p>
+        </div>
+        <div class="col-task">
+          <span class="eyebrow" contenteditable="false">Задача</span>
+          <p contenteditable="false">annki попросили развить фирменную форму клевера шире двух коллекционных предметов, на которых она держалась.</p>
+          <p contenteditable="false" style="margin-top:1em">Ключевая задача — удержать узнаваемость и серийность одновременно: обычно чем ярче форма, тем сложнее её тиражировать.</p>
+        </div>
+        <div class="col-result">
+          <span class="eyebrow" contenteditable="false">Результат</span>
+          <p contenteditable="false">Форма клевера превратилась из «формы предмета» в сквозной дизайн-код, работающий в разных масштабах и материалах.</p>
+          <p contenteditable="false" style="margin-top:1em">Каждый объект автономен и тиражируем, но вместе они формируют узнаваемую среду.</p>
+        </div>
+
+        <div class="slider has-media" data-slider="" data-sid="sl-2" data-cur="3">
+          <div class="slides"></div>
+          
+          <div class="nav prev" onclick="slidePrev(this)"><span>‹</span></div>
+          <div class="nav next" onclick="slideNext(this)"><span>›</span></div>
+          
+          <button class="del-slide" title="Удалить этот слайд" onclick="delSlide(this)">🗑 слайд</button>
+          <button class="expand-slider" title="На весь экран" onclick="openSlider(this)">⤢</button>
+          <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot active"></div><div class="dot"></div></div>
+        </div>
+
+        <div class="research-link" contenteditable="false">Изучить исследование →</div>
+
+        <div class="deck has-media" data-deck="" onclick="openDeck(this)" data-did="dk-2">
+          <div class="stack"></div>
+          
+          <div class="deck-cap" style="">Презентация →</div>
+        </div>
+
+        <div class="research-copy" contenteditable="false">
+          <p contenteditable="false">В основе — анализ бренда: форма clover системна, это модуль, из которого собраны и логотип, и предметы, значит её можно масштабировать, не нарушая язык. Палитра сознательно ограничена материалами бренда: дерево, металл, пластик, ковровое волокно.</p>
+          <p contenteditable="false" style="margin-top:1em">Все решения серийные, готовые к производству внутри текущего цикла annki, и рассчитаны на два канала: частного покупателя и коммерческие пространства. Форма растёт от детали (мебельная ручка) до среды (ковёр), меняя масштаб, но сохраняя единый почерк.</p>
+        </div>
+
+        <hr class="case-rule">
+      </section>
+      <section class="g4 case">
+        <div class="case-no" contenteditable="false">4</div>
+
+        <div class="col-brief">
+          <span class="eyebrow" contenteditable="false">Кейс 4</span>
+          <p class="lede" contenteditable="false"><b>Серия киноплакатов к фильму «Explanation for Everything» · METU × HSE Art and Design School</b></p>
+          <p contenteditable="false">Poster Series / 2026</p>
+          <p contenteditable="false" style="margin-top:.6em;color:#7ba7d4"><font color="#96dbf4">✱ Финалист конкурса DAFES</font></p>
+          <p contenteditable="false" style="margin-top:1em">Серия из пяти альтернативных киноплакатов к фильму Габора Райса. Конкурс Budapest Metropolitan University и Школы дизайна НИУ ВШЭ.</p>
+        </div>
+        <div class="col-task">
+          <span class="eyebrow" contenteditable="false">Задача</span>
+          <p contenteditable="false">Нужно было найти визуальный ключ, который передаёт суть фильма, а не просто иллюстрирует сюжет.</p>
+        </div>
+        <div class="col-result">
+          <span class="eyebrow" contenteditable="false">Результат</span>
+          <p contenteditable="false">Ключом стал приём из первых минут фильма: кадр появляется крошечной точкой в центре чёрного экрана и медленно разрастается до полного формата.</p>
+        </div>
+
+        <div class="slider has-media" data-slider="" data-sid="sl-3" data-cur="5">
+          <div class="slides"></div>
+          
+          <div class="nav prev" onclick="slidePrev(this)"><span>‹</span></div>
+          <div class="nav next" onclick="slideNext(this)"><span>›</span></div>
+          
+          <button class="del-slide" title="Удалить этот слайд" onclick="delSlide(this)">🗑 слайд</button>
+          <button class="expand-slider" title="На весь экран" onclick="openSlider(this)">⤢</button>
+          <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot active"></div></div>
+        </div>
+
+        <div class="research-link" contenteditable="false"><a href="#">Изучить исследование →</a></div>
+
+        <div class="deck" data-deck="" onclick="openDeck(this)" data-did="dk-3">
+          <div class="stack"></div>
+          
+          <div class="deck-cap" style="display: none;">Презентация →</div>
+        </div>
+
+        <div class="research-copy" contenteditable="false">
+          <p contenteditable="false">В основе — метафора взросления. Текст здесь контроль: жёсткая сетка, в которую герой пытается уложить свою жизнь накануне экзамена. Растущий кадр — паника: мир обрушивается на него сразу и не помещается в голове.</p>
+          <p contenteditable="false" style="margin-top:1em">Рост изображения из точки в целый мир становится и приёмом, и смыслом. Пять постеров работают как единое движение — форма напрямую передаёт внутреннее состояние героя.</p>
+        </div>
+
+        <hr class="case-rule">
+      </section>
+      <section class="g4 case">
+        <div class="case-no" contenteditable="false">5</div>
+
+        <div class="col-brief">
+          <span class="eyebrow" contenteditable="false">Кейс 5</span>
+          <p class="lede" contenteditable="false"><b>Графика штампов: между культурой и географией</b></p>
+          <p contenteditable="false">Editorial / Book Design / 2025</p>
+          <p contenteditable="false" style="margin-top:1em">Книга-исследование о штампах как самостоятельном графическом языке — от паспортных отметок до туристических печатей.</p>
+        </div>
+        <div class="col-task">
+          <span class="eyebrow" contenteditable="false">Задача</span>
+          <p contenteditable="false">Штампы обычно воспринимают как формальность. Нужно было показать их как графический язык, в котором сочетаются контроль, навигация и образ территории.</p>
+          <p contenteditable="false" style="margin-top:1em">Задача — проследить, как визуальный язык штампов формирует образ мест, отражает культурные коды и становится частью национального брендинга.</p>
+        </div>
+        <div class="col-result">
+          <span class="eyebrow" contenteditable="false">Результат</span>
+          <p contenteditable="false">Книга, где сама вёрстка работает как штамп. Структура построена на ритме и повторе: синие кружки заменяют абзацные отступы, формируя единый поток, где каждая мысль — новая отметка о пересечении границы.</p>
+        </div>
+
+        <div class="slider has-media" data-slider="" data-sid="sl-4" data-cur="1">
+          <div class="slides"></div>
+          
+          <div class="nav prev" onclick="slidePrev(this)"><span>‹</span></div>
+          <div class="nav next" onclick="slideNext(this)"><span>›</span></div>
+          
+          <button class="del-slide" title="Удалить этот слайд" onclick="delSlide(this)">🗑 слайд</button>
+          <button class="expand-slider" title="На весь экран" onclick="openSlider(this)">⤢</button>
+          <div class="dots"><div class="dot"></div><div class="dot active"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+        </div>
+
+        <div class="research-link" contenteditable="false"><a href="#">Изучить детали →</a></div>
+
+        <div class="deck has-media" data-deck="" onclick="openDeck(this)" data-did="dk-4">
+          <div class="stack"></div>
+          
+          <div class="deck-cap" style="">Презентация →</div>
+        </div>
+
+        <div class="research-copy" contenteditable="false">
+          <p contenteditable="false">В основе — гипотеза: дизайн штампов на границах и в туристических зонах отражает культурные и географические особенности региона, превращая их в визуальные коды, которые передают идентичность места без пояснений.</p>
+          <p contenteditable="false" style="margin-top:1em">Строгая система: формат 125×240, сетка на пять колонок, два шрифта (Franklin Gothic Cond и Formular), единственный акцентный цвет — синий 0092ff. Материал разбит по главам от международных штампов до локальной идентичности, а типографика везде подчинена метафоре границы и следа.</p>
+        </div>
+
+        <hr class="case-rule">
+      </section>
+      <section class="g4 case">
+        <div class="case-no" contenteditable="false">6</div>
+
+        <div class="col-brief">
+          <span class="eyebrow" contenteditable="false">Кейс 6</span>
+          <p class="lede" contenteditable="false"><b>pop-up «ВЕЩЬ»</b></p>
+          <p contenteditable="false">Brand Identity / 2026</p>
+          <p contenteditable="false" style="margin-top:1em">Айдентика pop-up пространства (от журнала Собака.ру), которое объединяет отобранные локальные бренды одежды, аксессуаров и предметного дизайна.</p>
+        </div>
+        <div class="col-task">
+          <span class="eyebrow" contenteditable="false">Задача</span>
+          <p contenteditable="false">Открывается на ограниченный период и собирает точку притяжения для аудитории, увлечённой модой и локальными брендами.</p>
+          <p contenteditable="false" style="margin-top:1em">Нужна была айдентика, которая покажет главное отличие проекта — это кураторский отбор, где каждая позиция выверена.</p>
+        </div>
+        <div class="col-result">
+          <span class="eyebrow" contenteditable="false">Результат</span>
+          <p contenteditable="false">ВЕЩЬ читается как тщательно отобранная подборка, собранная в одном временном пространстве. Характер бренда — сдержанный, структурный, селективный, но выразительный.</p>
+        </div>
+
+        <div class="slider has-media" data-slider="" data-sid="sl-5" data-cur="3">
+          <div class="slides"></div>
+          
+          <div class="nav prev" onclick="slidePrev(this)"><span>‹</span></div>
+          <div class="nav next" onclick="slideNext(this)"><span>›</span></div>
+          
+          <button class="del-slide" title="Удалить этот слайд" onclick="delSlide(this)">🗑 слайд</button>
+          <button class="expand-slider" title="На весь экран" onclick="openSlider(this)">⤢</button>
+          <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot active"></div><div class="dot"></div></div>
+        </div>
+
+        <div class="research-link" contenteditable="false"><a href="#">Изучить исследование →</a></div>
+
+        <div class="deck has-media" data-deck="" onclick="openDeck(this)" data-did="dk-5">
+          <div class="stack"></div>
+          
+          <div class="deck-cap" style="">Презентация →</div>
+        </div>
+
+        <div class="research-copy" contenteditable="false">
+          <p contenteditable="false">В основе — исследование рынка и аудитории. Конкуренты (маркет Московской недели моды, KM20, pop-up бренды) делают ставку на масштаб, а ВЕЩЬ отстраивается кураторством. Аудитория — горожане и туристы сегмента mid / mid-up, ценящие осознанный выбор.</p>
+          <p contenteditable="false" style="margin-top:1em">Главный инсайт: покупка становится выбором внутри уже отобранного списка, а не поиском среди избыточного ассортимента. Отсюда и метафора чека — знак списка, порядка и продуманного отбора, на которой держится вся система.</p>
+        </div>
+
+        <hr class="case-rule">
+      </section>
+      <section class="g4 case">
+        <div class="case-no" contenteditable="false">7</div>
+
+        <div class="col-brief">
+          <span class="eyebrow" contenteditable="false">Кейс 7</span>
+          <p class="lede" contenteditable="false"><b>Типографика</b></p>
+          <p contenteditable="false">Type Design / Identity / 2025</p>
+          <p contenteditable="false" style="margin-top:.6em;color:#7ba7d4"><font color="#96dbf4">✱ Финалист конкурса DAFES</font></p>
+          <p contenteditable="false" style="margin-top:1em">Экспериментальная айдентика типографического фестиваля, где шрифт создан с помощью искусственного интеллекта.</p>
+        </div>
+        <div class="col-task">
+          <span class="eyebrow" contenteditable="false">Задача</span>
+          <p contenteditable="false">Исследовать искусственный интеллект как полноценный инструмент создания типографики, а не вспомогательное средство.</p>
+          <p contenteditable="false" style="margin-top:1em">Нужно было превратить единичный ИИ-эксперимент в цельную визуальную систему, которая держится на собственной логике формы.</p>
+        </div>
+        <div class="col-result">
+          <span class="eyebrow" contenteditable="false">Результат</span>
+          <p contenteditable="false">Из одного плаката выросла целая система: логика работы с ИИ, полноценный алфавит по тем же принципам формы и текстуры, а потом визуальный код масштабировался в айдентику фестиваля.</p>
+        </div>
+
+        <div class="slider has-media" data-slider="" data-sid="sl-6" data-cur="1">
+          <div class="slides"></div>
+          
+          <div class="nav prev" onclick="slidePrev(this)"><span>‹</span></div>
+          <div class="nav next" onclick="slideNext(this)"><span>›</span></div>
+          
+          <button class="del-slide" title="Удалить этот слайд" onclick="delSlide(this)">🗑 слайд</button>
+          <button class="expand-slider" title="На весь экран" onclick="openSlider(this)">⤢</button>
+          <div class="dots"><div class="dot"></div><div class="dot active"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+        </div>
+
+        <div class="research-link" contenteditable="false"><a href="#">Изучить исследование →</a></div>
+
+        <div class="deck" data-deck="" onclick="openDeck(this)" data-did="dk-6">
+          <div class="stack"></div>
+          
+          <div class="deck-cap" style="display: none;">Презентация →</div>
+        </div>
+
+        <div class="research-copy" contenteditable="false">
+          <p contenteditable="false">Проект построен как последовательное развитие одного приёма: от одного слова к знаку, от знака к алфавиту, от алфавита к айдентике. ИИ выступает соавтором формы, задающим характер букв, который дальше развивается вручную.</p>
+          <p contenteditable="false" style="margin-top:1em">Ключевая находка — фактура на пересечении рельефа и цифры: буквы выглядят одновременно осязаемыми и сгенерированными. Эта двойственность и становится темой фестиваля, зашитой прямо в шрифт.</p>
+        </div>
+
+        <hr class="case-rule">
+      </section>
+    </div></div><div class="pane right"><div id="resume">
+      <div class="g2 res-block">
+        <div class="res-label" contenteditable="false">Profile</div>
+        <div class="res-body" contenteditable="false">
+          <p>Дизайнер визуальных систем и интерфейсов.</p>
+          <p>Работаю на стыке графического дизайна, интерфейсов и 3D, подбирая инструмент под задачу.</p>
+          <p>Интересуюсь типографикой и системным подходом — от печатных изданий до цифровых продуктов. Понимаю, как работает структура и визуальный ритм в разных медиумах.</p>
+          <p>В digital-проектах исследую взаимодействие с пользователем, в том числе с использованием AI-инструментов.</p>
+          <p>Работаю с айдентикой, интерфейсами и визуальными системами, адаптируя решения под контекст и формат.</p>
+          <p><a href="https://malito:tevszlata.graphic@yandex.com" target="_blank" rel="noopener">tevszlata.graphic@yandex.com</a><br><a href="https://t.me/yazvad" target="_blank" rel="noopener">telegram ↗</a></p>
+        </div>
+      </div>
+      <div class="g2 res-block">
+        <div class="res-label" contenteditable="false">Education</div>
+        <div class="res-body" contenteditable="false">
+          <p>НИУ ВШЭ — Школа дизайна, Москва<br>2023 — 2027</p>
+          <p>Коммуникационный дизайн<br>4 курс</p>
+          <p>Работа с реальными и учебными брифами, участие в конкурсах, разработка айдентики, интерфейсов и печатных проектов.</p>
+        </div>
+      </div>
+      <div class="g2 res-block">
+        <div class="res-label" contenteditable="false">Skills</div>
+        <div class="res-body" contenteditable="false">
+          <h4>Tools</h4>
+          <p>Figma<br>Adobe Photoshop<br>Illustrator<br>InDesign<br>Blender<br>After Effects<br>Tilda<br>Ai</p>
+          <h4 class="mt">Design</h4>
+          <p>Айдентика — исследование, концепция, визуальная система<br>
+          Графический дизайн — печатные и digital-плакаты<br>
+          UI/UX — мобильные приложения, лендинги, лонгриды<br>
+          3D — моделирование объектов и пространств</p>
+        </div>
+      </div>
+      <div class="g2 res-block">
+        <div class="res-label" contenteditable="false">Exhibitions</div>
+        <div class="res-body" contenteditable="false">
+          <p>Типографика DAFES<br>Москва, 2026</p>
+          <p>Плакат, отобранный для участия в выставке.</p>
+        </div>
+      </div>
+      <div class="g2 res-block">
+        <div class="res-label" contenteditable="false">Awards</div>
+        <div class="res-body" contenteditable="false">
+          <p>✱ Выставка «Типографика DAFES» в Музее Москвы, 2025<br>Плакат на выставке<br>Проект финалист конкурса на айдентику фестиваля</p>
+          <p>✱ 2 место <a href="https://hsedesign.ru/competition/70048b9b70d1463ab0597b89fd2c4cc2" target="_blank" rel="noopener">конкурса DAFES</a> — Коллекция мебели для annki «CLOVER SYSTEM»</p>
+          <p>✱ 5 проектов в шорт-листе конкурса DAFES</p>
+          <p>✱ 2 место конкурса на айдентику КВК «Ботанические оранжереи»</p>
+        </div>
+      </div>
+    </div></div></div>
+<div class="lightbox" id="lightbox"><div class="lb-top"><span id="lb-counter">1 / 1</span><button class="lb-close" onclick="closeDeck()">✕</button></div><div class="lb-stage"><button class="lb-arrow prev" onclick="lbGo(-1)">‹</button><div class="lb-frame" id="lb-frame"></div><button class="lb-arrow next" onclick="lbGo(1)">›</button></div><div class="lb-thumbs" id="lb-thumbs"></div></div>
+<script>const DATA={"sliders":[[{"type":"image/gif","url":"assets/img-001.gif"},{"type":"image/jpeg","url":"assets/img-002.jpg"},{"type":"image/gif","url":"assets/img-003.gif"},{"type":"image/jpeg","url":"assets/img-004.jpg"},{"type":"image/gif","url":"assets/img-005.gif"}],[{"type":"image/gif","url":"assets/img-006.gif"},{"type":"image/jpeg","url":"assets/img-007.jpg"},{"type":"image/jpeg","url":"assets/img-008.jpg"},{"type":"image/jpeg","url":"assets/img-009.jpg"},{"type":"image/gif","url":"assets/img-010.gif"}],[{"type":"image/jpeg","url":"assets/img-011.jpg"},{"type":"image/jpeg","url":"assets/img-012.jpg"},{"type":"image/jpeg","url":"assets/img-013.jpg"},{"type":"image/jpeg","url":"assets/img-014.jpg"},{"type":"image/jpeg","url":"assets/img-015.jpg"}],[{"type":"image/gif","url":"assets/img-016.gif"},{"type":"image/jpeg","url":"assets/img-017.jpg"},{"type":"image/jpeg","url":"assets/img-018.jpg"},{"type":"image/jpeg","url":"assets/img-019.jpg"},{"type":"image/jpeg","url":"assets/img-020.jpg"},{"type":"image/jpeg","url":"assets/img-021.jpg"}],[{"type":"image/gif","url":"assets/img-022.gif"},{"type":"image/jpeg","url":"assets/img-023.jpg"},{"type":"image/jpeg","url":"assets/img-024.jpg"},{"type":"image/jpeg","url":"assets/img-025.jpg"},{"type":"image/jpeg","url":"assets/img-026.jpg"}],[{"type":"image/gif","url":"assets/img-027.gif"},{"type":"image/jpeg","url":"assets/img-028.jpg"},{"type":"image/jpeg","url":"assets/img-029.jpg"},{"type":"image/jpeg","url":"assets/img-030.jpg"},{"type":"image/jpeg","url":"assets/img-031.jpg"}],[{"type":"image/jpeg","url":"assets/img-032.jpg"},{"type":"image/jpeg","url":"assets/img-033.jpg"},{"type":"image/jpeg","url":"assets/img-034.jpg"},{"type":"image/jpeg","url":"assets/img-035.jpg"},{"type":"image/jpeg","url":"assets/img-036.jpg"},{"type":"image/jpeg","url":"assets/img-037.jpg"},{"type":"image/jpeg","url":"assets/img-038.jpg"},{"type":"image/jpeg","url":"assets/img-039.jpg"},{"type":"image/jpeg","url":"assets/img-040.jpg"},{"type":"image/jpeg","url":"assets/img-041.jpg"}]],"decks":[[{"type":"image/jpeg","url":"assets/img-042.jpg"},{"type":"image/jpeg","url":"assets/img-043.jpg"},{"type":"image/jpeg","url":"assets/img-044.jpg"},{"type":"image/jpeg","url":"assets/img-045.jpg"},{"type":"image/jpeg","url":"assets/img-046.jpg"},{"type":"image/jpeg","url":"assets/img-047.jpg"},{"type":"image/jpeg","url":"assets/img-048.jpg"},{"type":"image/jpeg","url":"assets/img-049.jpg"},{"type":"image/jpeg","url":"assets/img-050.jpg"},{"type":"image/jpeg","url":"assets/img-051.jpg"},{"type":"image/jpeg","url":"assets/img-052.jpg"}],[{"type":"image/jpeg","url":"assets/img-053.jpg"},{"type":"image/jpeg","url":"assets/img-054.jpg"},{"type":"image/jpeg","url":"assets/img-055.jpg"},{"type":"image/jpeg","url":"assets/img-056.jpg"},{"type":"image/jpeg","url":"assets/img-057.jpg"},{"type":"image/jpeg","url":"assets/img-058.jpg"},{"type":"image/jpeg","url":"assets/img-059.jpg"},{"type":"image/jpeg","url":"assets/img-060.jpg"},{"type":"image/jpeg","url":"assets/img-061.jpg"},{"type":"image/jpeg","url":"assets/img-062.jpg"},{"type":"image/jpeg","url":"assets/img-063.jpg"},{"type":"image/jpeg","url":"assets/img-064.jpg"},{"type":"image/jpeg","url":"assets/img-065.jpg"},{"type":"image/gif","url":"assets/img-066.gif"},{"type":"image/gif","url":"assets/img-067.gif"}],[{"type":"image/jpeg","url":"assets/img-068.jpg"},{"type":"image/jpeg","url":"assets/img-069.jpg"},{"type":"image/jpeg","url":"assets/img-070.jpg"},{"type":"image/jpeg","url":"assets/img-071.jpg"},{"type":"image/jpeg","url":"assets/img-072.jpg"},{"type":"image/jpeg","url":"assets/img-073.jpg"},{"type":"image/jpeg","url":"assets/img-074.jpg"},{"type":"image/jpeg","url":"assets/img-075.jpg"},{"type":"image/jpeg","url":"assets/img-076.jpg"},{"type":"image/jpeg","url":"assets/img-077.jpg"},{"type":"image/jpeg","url":"assets/img-078.jpg"},{"type":"image/jpeg","url":"assets/img-079.jpg"},{"type":"image/jpeg","url":"assets/img-080.jpg"},{"type":"image/jpeg","url":"assets/img-081.jpg"},{"type":"image/jpeg","url":"assets/img-082.jpg"},{"type":"image/jpeg","url":"assets/img-083.jpg"},{"type":"image/jpeg","url":"assets/img-084.jpg"},{"type":"image/jpeg","url":"assets/img-085.jpg"},{"type":"image/jpeg","url":"assets/img-086.jpg"}],[],[{"type":"image/jpeg","url":"assets/img-087.jpg"},{"type":"image/jpeg","url":"assets/img-088.jpg"},{"type":"image/jpeg","url":"assets/img-089.jpg"},{"type":"image/jpeg","url":"assets/img-090.jpg"},{"type":"image/jpeg","url":"assets/img-091.jpg"},{"type":"image/jpeg","url":"assets/img-092.jpg"},{"type":"image/gif","url":"assets/img-093.gif"},{"type":"image/jpeg","url":"assets/img-094.jpg"},{"type":"image/gif","url":"assets/img-095.gif"},{"type":"image/jpeg","url":"assets/img-096.jpg"}],[{"type":"image/jpeg","url":"assets/img-097.jpg"},{"type":"image/jpeg","url":"assets/img-098.jpg"},{"type":"image/jpeg","url":"assets/img-099.jpg"},{"type":"image/jpeg","url":"assets/img-100.jpg"},{"type":"image/jpeg","url":"assets/img-101.jpg"},{"type":"image/jpeg","url":"assets/img-102.jpg"},{"type":"image/jpeg","url":"assets/img-103.jpg"},{"type":"image/jpeg","url":"assets/img-104.jpg"},{"type":"image/jpeg","url":"assets/img-105.jpg"},{"type":"image/jpeg","url":"assets/img-106.jpg"},{"type":"image/jpeg","url":"assets/img-107.jpg"}],[]],"head":"\n      <h1 class=\"title\" contenteditable=\"true\">ПОРТФОЛИО. ДИЗАЙНЕР</h1>\n      <div class=\"head-photo has-photo\" data-headphoto=\"\" onclick=\"pickHeadPhoto(this)\">\n        \n        <img src=\"blob:null/e2b3e4cb-42be-4c99-ad60-76fdcde7acc5\"><input type=\"file\" accept=\"image/*\" onchange=\"loadHeadPhoto(this)\">\n      </div>\n      <p class=\"sub sub1\" contenteditable=\"true\">Мультидисциплинарный подход к визуальным системам и интерфейсам</p>\n      <p class=\"sub sub2\" contenteditable=\"true\">Фокус — структура, визуальный язык и адаптация под контекст</p>\n      <p class=\"sub sub3\" contenteditable=\"true\">#айдентика<br>#мобильные приложения<br>#графический дизайн<br>#предметный дизайн 3Д</p>\n      <hr class=\"head-rule\">\n    ","cases":"\n      <section class=\"g4 case\">\n        <div class=\"case-no\" contenteditable=\"true\">1</div>\n\n        <div class=\"col-brief\">\n          <span class=\"eyebrow\" contenteditable=\"true\">Кейс 1</span>\n          <p class=\"lede\" contenteditable=\"true\"><b>Sip Ai</b></p>\n          <p contenteditable=\"true\">Mobile Application / 2025</p>\n          <p contenteditable=\"true\" style=\"margin-top:1em\">Приложение, которое подбирает коктейли под настроение, блюдо или ингредиенты, что уже есть дома.</p>\n        </div>\n        <div class=\"col-task\">\n          <span class=\"eyebrow\" contenteditable=\"true\">Задача</span>\n          <p contenteditable=\"true\">Люди хотят готовить интересные напитки дома, но теряются: не знают, что выбрать, как подобрать к моменту и что смешать из случайного набора бутылок.</p>\n          <p contenteditable=\"true\" style=\"margin-top:1em\">Нужно было убрать страх ошибки и сократить путь от желания до готового напитка.</p>\n        </div>\n        <div class=\"col-result\">\n          <span class=\"eyebrow\" contenteditable=\"true\">Результат</span>\n          <p contenteditable=\"true\">Персональный подбор по настроению, блюду или доступным ингредиентам. Сканирование барной полки заменяет долгий поиск рецепта.</p>\n          <p contenteditable=\"true\" style=\"margin-top:1em\">Домашний бар становится простым и понятным — можно не просто пить, а творить.</p>\n        </div>\n\n        <div class=\"slider has-media\" data-slider=\"\" data-sid=\"sl-0\" data-cur=\"3\">\n          <div class=\"slides\"><div class=\"slide\"><img src=\"blob:null/0d78ff02-d1a9-4641-9204-13c13e65e3d8\"></div><div class=\"slide\"><img src=\"blob:null/662be291-ae29-41f4-9486-a4a509eb6a80\"></div><div class=\"slide\"><img src=\"blob:null/61c5b0b4-7ff4-4e60-8833-1b0e5f43341f\"></div><div class=\"slide active\"><img src=\"blob:null/923b368d-4cec-464a-a710-44e3309106f3\"></div><div class=\"slide\"><img src=\"blob:null/06fc46c0-4556-4aa2-bd55-b2611056f2de\"></div></div>\n          <div class=\"slider-empty\" onclick=\"addSlide(this)\" style=\"display: none;\">\n            Обложка / слайд-шоу<br>кликните, чтобы добавить слайды\n            <input type=\"file\" accept=\"image/*,video/*\" multiple=\"\" style=\"display:none\" onchange=\"onSlideFiles(this)\">\n          </div>\n          <div class=\"nav prev\" onclick=\"slidePrev(this)\"><span>‹</span></div>\n          <div class=\"nav next\" onclick=\"slideNext(this)\"><span>›</span></div>\n          <button class=\"add-slide\" onclick=\"addSlide(this)\">+ слайд</button>\n          <button class=\"del-slide\" title=\"Удалить этот слайд\" onclick=\"delSlide(this)\">🗑 слайд</button>\n          <button class=\"expand-slider\" title=\"На весь экран\" onclick=\"openSlider(this)\">⤢</button>\n          <div class=\"dots\"><div class=\"dot\"></div><div class=\"dot\"></div><div class=\"dot\"></div><div class=\"dot active\"></div><div class=\"dot\"></div></div>\n        </div>\n\n        <div class=\"research-link\" contenteditable=\"true\">Изучить исследование → <a href=\"https://vimeo.com/1097409872/96e4e3d9cd?share=copy&amp;fl=cl&amp;fe=ci\" target=\"_blank\" rel=\"noopener\">скринкаст приложения</a></div>\n\n        <div class=\"deck has-media\" data-deck=\"\" onclick=\"openDeck(this)\" data-did=\"dk-0\">\n          <div class=\"stack\"><div class=\"card\"><img src=\"blob:null/1f90215e-803a-43fb-aab7-344d84e483dc\"></div><div class=\"card\"><img src=\"blob:null/084d1520-8340-491d-9230-22cb8fd950a2\"></div><div class=\"card\"><img src=\"blob:null/bcaeec60-49b9-4f2e-bf2d-9104d0c27a48\"></div></div>\n          <div class=\"empty\" onclick=\"addDeck(event,this)\" style=\"display: none;\">\n            презентация<br>+ загрузить слайды\n            <input type=\"file\" accept=\"image/*,video/*\" multiple=\"\" style=\"display:none\" onchange=\"onDeckFiles(this)\">\n          </div>\n          <div class=\"deck-cap\" style=\"\">Презентация →</div>\n        </div>\n\n        <div class=\"research-copy\" contenteditable=\"true\">\n          <p contenteditable=\"true\">В основе — глубинное исследование аудитории 18–35 лет. Оно показало три барьера: 43% путаются в сложных ингредиентах, 75% считают рецепты слишком трудными, 87% хотят готовить из того, что уже есть дома.</p>\n          <p contenteditable=\"true\" style=\"margin-top:1em\">Эти инсайты легли в ядро продукта: персонализация вместо каталога, подбор по наличию вместо походов в магазин, короткий путь вместо длинных рецептов. Спроектированы пользовательские сценарии и полная карта приложения — от подбора и генерации напитка до «Моего бара» с историей и прогрессом.</p>\n        </div>\n\n        <hr class=\"case-rule\">\n      </section>\n      <section class=\"g4 case\">\n        <div class=\"case-no\" contenteditable=\"true\">2</div>\n\n        <div class=\"col-brief\">\n          <span class=\"eyebrow\" contenteditable=\"true\">Кейс 2</span>\n          <p class=\"lede\" contenteditable=\"true\"><b>КВК «Ботанические оранжереи»</b></p>\n          <p contenteditable=\"true\">Brand Identity / 2026</p>\n          <p contenteditable=\"true\" style=\"margin-top:.6em;color:#7ba7d4\"><font color=\"#96dbf4\">✱ <a href=\"https://vk.ru/wall-96891566_11581\" target=\"_blank\" rel=\"noopener\">Призер конкурса на брендинг</a></font></p>\n          <p contenteditable=\"true\" style=\"margin-top:.6em;color:#7ba7d4\"><font color=\"#96dbf4\">✱ Финалист конкурса DAFES</font></p>\n          <p contenteditable=\"true\" style=\"margin-top:1em\">Айдентика КВК в музее-заповеднике Архангельское — культурного центра внутри исторических оранжерей.</p>\n        </div>\n        <div class=\"col-task\">\n          <span class=\"eyebrow\" contenteditable=\"true\">Задача</span>\n          <p contenteditable=\"true\">КВК объединяет несопоставимое: наследие музея и современные практики — выставки, кино, лекции, детские программы.</p>\n          <p contenteditable=\"true\" style=\"margin-top:1em\">Нужен был визуальный язык, который показывает связь с музеем и его новый формат одновременно, и с первого взгляда объясняет случайному прохожему, что здесь происходит и почему стоит зайти.</p>\n        </div>\n        <div class=\"col-result\">\n          <span class=\"eyebrow\" contenteditable=\"true\">Результат</span>\n          <p contenteditable=\"true\">Получился гибкий системный стиль, который объединяет разные форматы: выставки, кино, лекции, детские программы в один узнаваемый визуальный язык.</p>\n          <p contenteditable=\"true\" style=\"margin-top:1em\">Он связывает наследие музея с современным форматом центра и работает на любом носителе, от афиши до цифровых экранов. Единая логика делает бренд цельным и живым, а не набором разрозненных элементов.</p>\n        </div>\n\n        <div class=\"slider has-media\" data-slider=\"\" data-sid=\"sl-1\" data-cur=\"4\">\n          <div class=\"slides\"><div class=\"slide\"><img src=\"blob:null/7996da11-b7ff-4737-8483-9526e6a63fb1\"></div><div class=\"slide\"><img src=\"blob:null/c86c549c-2d9c-4e52-bc0c-78ce044e02f5\"></div><div class=\"slide\"><img src=\"blob:null/68daa2a9-c28c-47e8-8ad1-1df24985c9f1\"></div><div class=\"slide\"><img src=\"blob:null/3c00596f-ac84-4d6f-84c2-1feb47198673\"></div><div class=\"slide active\"><img src=\"blob:null/185c5337-99dd-4ead-a52e-1f6a20979bc6\"></div></div>\n          <div class=\"slider-empty\" onclick=\"addSlide(this)\" style=\"display: none;\">\n            Обложка / слайд-шоу<br>кликните, чтобы добавить слайды\n            <input type=\"file\" accept=\"image/*,video/*\" multiple=\"\" style=\"display:none\" onchange=\"onSlideFiles(this)\">\n          </div>\n          <div class=\"nav prev\" onclick=\"slidePrev(this)\"><span>‹</span></div>\n          <div class=\"nav next\" onclick=\"slideNext(this)\"><span>›</span></div>\n          <button class=\"add-slide\" onclick=\"addSlide(this)\">+ слайд</button>\n          <button class=\"del-slide\" title=\"Удалить этот слайд\" onclick=\"delSlide(this)\">🗑 слайд</button>\n          <button class=\"expand-slider\" title=\"На весь экран\" onclick=\"openSlider(this)\">⤢</button>\n          <div class=\"dots\"><div class=\"dot\"></div><div class=\"dot\"></div><div class=\"dot\"></div><div class=\"dot\"></div><div class=\"dot active\"></div></div>\n        </div>\n\n        <div class=\"research-link\" contenteditable=\"true\"><a href=\"#\">Изучить исследование →</a></div>\n\n        <div class=\"deck has-media\" data-deck=\"\" onclick=\"openDeck(this)\" data-did=\"dk-1\">\n          <div class=\"stack\"><div class=\"card\"><img src=\"blob:null/a36d286b-f432-4a4a-9e3d-346962fcb7fc\"></div><div class=\"card\"><img src=\"blob:null/b4b42bcf-085c-43a1-84a4-c148635d7f2c\"></div><div class=\"card\"><img src=\"blob:null/7184d064-676f-41f4-a820-ac95c3e00289\"></div></div>\n          <div class=\"empty\" onclick=\"addDeck(event,this)\" style=\"display: none;\">\n            презентация<br>+ загрузить слайды\n            <input type=\"file\" accept=\"image/*,video/*\" multiple=\"\" style=\"display:none\" onchange=\"onDeckFiles(this)\">\n          </div>\n          <div class=\"deck-cap\" style=\"\">Презентация →</div>\n        </div>\n\n        <div class=\"research-copy\" contenteditable=\"true\">\n          <p contenteditable=\"true\">В основе — анализ конкурентов (Переделкино, Музейная четвёрка, ГЭС-2) и портрет аудитории: человек, который выбирает досуг спонтанно, по визуалу и простому объяснению, зачем идти.</p>\n          <p contenteditable=\"true\" style=\"margin-top:1em\">Айдентика держится на трёх ценностях: синтез эпох, доступность, просвещение. Ключевое решение — генеративность: узоры не рисуются вручную, а собираются в Processing. Программа считывает контраст чёрно-белого исходника и раскладывает насыщенные модули на тёмные участки, воздушные — на светлые. Так стиль расширяется быстро и в единой логике — система, а не набор картинок.</p>\n        </div>\n\n        <hr class=\"case-rule\">\n      </section>\n      <section class=\"g4 case\">\n        <div class=\"case-no\" contenteditable=\"true\">3</div>\n\n        <div class=\"col-brief\">\n          <span class=\"eyebrow\" contenteditable=\"true\">Кейс 3</span>\n          <p class=\"lede\" contenteditable=\"true\"><b>annki × hse</b></p>\n          <p contenteditable=\"true\">Product / Furniture Design / 2026</p>\n          <p contenteditable=\"true\" style=\"margin-top:.6em;color:#7ba7d4\"><font color=\"#96dbf4\">✱ 2 место конкурса DAFES</font></p>\n          <p contenteditable=\"true\" style=\"margin-top:1em\">Коллекция предметов, построенных на фирменной форме клевера (clover 2.0) — от кресла до фурнитуры.</p>\n        </div>\n        <div class=\"col-task\">\n          <span class=\"eyebrow\" contenteditable=\"true\">Задача</span>\n          <p contenteditable=\"true\">annki попросили развить фирменную форму клевера шире двух коллекционных предметов, на которых она держалась.</p>\n          <p contenteditable=\"true\" style=\"margin-top:1em\">Ключевая задача — удержать узнаваемость и серийность одновременно: обычно чем ярче форма, тем сложнее её тиражировать.</p>\n        </div>\n        <div class=\"col-result\">\n          <span class=\"eyebrow\" contenteditable=\"true\">Результат</span>\n          <p contenteditable=\"true\">Форма клевера превратилась из «формы предмета» в сквозной дизайн-код, работающий в разных масштабах и материалах.</p>\n          <p contenteditable=\"true\" style=\"margin-top:1em\">Каждый объект автономен и тиражируем, но вместе они формируют узнаваемую среду.</p>\n        </div>\n\n        <div class=\"slider has-media\" data-slider=\"\" data-sid=\"sl-2\" data-cur=\"3\">\n          <div class=\"slides\"><div class=\"slide\"><img src=\"blob:null/275d7717-71c4-4f50-b657-bd0238bc1617\"></div><div class=\"slide\"><img src=\"blob:null/f3bdfd5b-cb3b-4137-b0a8-ddf3b766c7c3\"></div><div class=\"slide\"><img src=\"blob:null/f4cbd61c-0f0c-4d02-bd99-ff50908533b8\"></div><div class=\"slide active\"><img src=\"blob:null/7ddfb7f6-92fe-4a64-bc8f-954aaf10469e\"></div><div class=\"slide\"><img src=\"blob:null/0bc974c9-5b37-4201-a6fa-59eafec044e4\"></div></div>\n          <div class=\"slider-empty\" onclick=\"addSlide(this)\" style=\"display: none;\">\n            Обложка / слайд-шоу<br>кликните, чтобы добавить слайды\n            <input type=\"file\" accept=\"image/*,video/*\" multiple=\"\" style=\"display:none\" onchange=\"onSlideFiles(this)\">\n          </div>\n          <div class=\"nav prev\" onclick=\"slidePrev(this)\"><span>‹</span></div>\n          <div class=\"nav next\" onclick=\"slideNext(this)\"><span>›</span></div>\n          <button class=\"add-slide\" onclick=\"addSlide(this)\">+ слайд</button>\n          <button class=\"del-slide\" title=\"Удалить этот слайд\" onclick=\"delSlide(this)\">🗑 слайд</button>\n          <button class=\"expand-slider\" title=\"На весь экран\" onclick=\"openSlider(this)\">⤢</button>\n          <div class=\"dots\"><div class=\"dot\"></div><div class=\"dot\"></div><div class=\"dot\"></div><div class=\"dot active\"></div><div class=\"dot\"></div></div>\n        </div>\n\n        <div class=\"research-link\" contenteditable=\"true\">Изучить исследование →</div>\n\n        <div class=\"deck has-media\" data-deck=\"\" onclick=\"openDeck(this)\" data-did=\"dk-2\">\n          <div class=\"stack\"><div class=\"card\"><img src=\"blob:null/be386837-dd55-423f-9c04-474635cd265c\"></div><div class=\"card\"><img src=\"blob:null/94344e31-ca17-44a6-ad2d-8f576a3603d6\"></div><div class=\"card\"><img src=\"blob:null/0a0a150e-3b38-4be0-b0b8-2d65f3de6fa5\"></div></div>\n          <div class=\"empty\" onclick=\"addDeck(event,this)\" style=\"display: none;\">\n            презентация<br>+ загрузить слайды\n            <input type=\"file\" accept=\"image/*,video/*\" multiple=\"\" style=\"display:none\" onchange=\"onDeckFiles(this)\">\n          </div>\n          <div class=\"deck-cap\" style=\"\">Презентация →</div>\n        </div>\n\n        <div class=\"research-copy\" contenteditable=\"true\">\n          <p contenteditable=\"true\">В основе — анализ бренда: форма clover системна, это модуль, из которого собраны и логотип, и предметы, значит её можно масштабировать, не нарушая язык. Палитра сознательно ограничена материалами бренда: дерево, металл, пластик, ковровое волокно.</p>\n          <p contenteditable=\"true\" style=\"margin-top:1em\">Все решения серийные, готовые к производству внутри текущего цикла annki, и рассчитаны на два канала: частного покупателя и коммерческие пространства. Форма растёт от детали (мебельная ручка) до среды (ковёр), меняя масштаб, но сохраняя единый почерк.</p>\n        </div>\n\n        <hr class=\"case-rule\">\n      </section>\n      <section class=\"g4 case\">\n        <div class=\"case-no\" contenteditable=\"true\">4</div>\n\n        <div class=\"col-brief\">\n          <span class=\"eyebrow\" contenteditable=\"true\">Кейс 4</span>\n          <p class=\"lede\" contenteditable=\"true\"><b>Серия киноплакатов к фильму «Explanation for Everything» · METU × HSE Art and Design School</b></p>\n          <p contenteditable=\"true\">Poster Series / 2026</p>\n          <p contenteditable=\"true\" style=\"margin-top:.6em;color:#7ba7d4\"><font color=\"#96dbf4\">✱ Финалист конкурса DAFES</font></p>\n          <p contenteditable=\"true\" style=\"margin-top:1em\">Серия из пяти альтернативных киноплакатов к фильму Габора Райса. Конкурс Budapest Metropolitan University и Школы дизайна НИУ ВШЭ.</p>\n        </div>\n        <div class=\"col-task\">\n          <span class=\"eyebrow\" contenteditable=\"true\">Задача</span>\n          <p contenteditable=\"true\">Нужно было найти визуальный ключ, который передаёт суть фильма, а не просто иллюстрирует сюжет.</p>\n        </div>\n        <div class=\"col-result\">\n          <span class=\"eyebrow\" contenteditable=\"true\">Результат</span>\n          <p contenteditable=\"true\">Ключом стал приём из первых минут фильма: кадр появляется крошечной точкой в центре чёрного экрана и медленно разрастается до полного формата.</p>\n        </div>\n\n        <div class=\"slider has-media\" data-slider=\"\" data-sid=\"sl-3\" data-cur=\"5\">\n          <div class=\"slides\"><div class=\"slide\"><img src=\"blob:null/04c07adf-ff7d-48dd-b5a7-283fec416aea\"></div><div class=\"slide\"><img src=\"blob:null/cca002b1-0662-49f2-b0cf-a8dccdcfe257\"></div><div class=\"slide\"><img src=\"blob:null/da4ff089-d0ca-4d48-8501-d2084a10e70d\"></div><div class=\"slide\"><img src=\"blob:null/45ca6493-e55e-48c8-8053-e9ceff7a152b\"></div><div class=\"slide\"><img src=\"blob:null/39f67974-28b9-4074-bc35-d9e2b224fb5d\"></div><div class=\"slide active\"><img src=\"blob:null/9faf64a0-cde5-4151-aea7-d56a82b760c7\"></div></div>\n          <div class=\"slider-empty\" onclick=\"addSlide(this)\" style=\"display: none;\">\n            Обложка / слайд-шоу<br>кликните, чтобы добавить слайды\n            <input type=\"file\" accept=\"image/*,video/*\" multiple=\"\" style=\"display:none\" onchange=\"onSlideFiles(this)\">\n          </div>\n          <div class=\"nav prev\" onclick=\"slidePrev(this)\"><span>‹</span></div>\n          <div class=\"nav next\" onclick=\"slideNext(this)\"><span>›</span></div>\n          <button class=\"add-slide\" onclick=\"addSlide(this)\">+ слайд</button>\n          <button class=\"del-slide\" title=\"Удалить этот слайд\" onclick=\"delSlide(this)\">🗑 слайд</button>\n          <button class=\"expand-slider\" title=\"На весь экран\" onclick=\"openSlider(this)\">⤢</button>\n          <div class=\"dots\"><div class=\"dot\"></div><div class=\"dot\"></div><div class=\"dot\"></div><div class=\"dot\"></div><div class=\"dot\"></div><div class=\"dot active\"></div></div>\n        </div>\n\n        <div class=\"research-link\" contenteditable=\"true\"><a href=\"#\">Изучить исследование →</a></div>\n\n        <div class=\"deck\" data-deck=\"\" onclick=\"openDeck(this)\" data-did=\"dk-3\">\n          <div class=\"stack\"></div>\n          <div class=\"empty\" onclick=\"addDeck(event,this)\">\n            презентация<br>+ загрузить слайды\n            <input type=\"file\" accept=\"image/*,video/*\" multiple=\"\" style=\"display:none\" onchange=\"onDeckFiles(this)\">\n          </div>\n          <div class=\"deck-cap\" style=\"display: none;\">Презентация →</div>\n        </div>\n\n        <div class=\"research-copy\" contenteditable=\"true\">\n          <p contenteditable=\"true\">В основе — метафора взросления. Текст здесь контроль: жёсткая сетка, в которую герой пытается уложить свою жизнь накануне экзамена. Растущий кадр — паника: мир обрушивается на него сразу и не помещается в голове.</p>\n          <p contenteditable=\"true\" style=\"margin-top:1em\">Рост изображения из точки в целый мир становится и приёмом, и смыслом. Пять постеров работают как единое движение — форма напрямую передаёт внутреннее состояние героя.</p>\n        </div>\n\n        <hr class=\"case-rule\">\n      </section>\n      <section class=\"g4 case\">\n        <div class=\"case-no\" contenteditable=\"true\">5</div>\n\n        <div class=\"col-brief\">\n          <span class=\"eyebrow\" contenteditable=\"true\">Кейс 5</span>\n          <p class=\"lede\" contenteditable=\"true\"><b>Графика штампов: между культурой и географией</b></p>\n          <p contenteditable=\"true\">Editorial / Book Design / 2025</p>\n          <p contenteditable=\"true\" style=\"margin-top:1em\">Книга-исследование о штампах как самостоятельном графическом языке — от паспортных отметок до туристических печатей.</p>\n        </div>\n        <div class=\"col-task\">\n          <span class=\"eyebrow\" contenteditable=\"true\">Задача</span>\n          <p contenteditable=\"true\">Штампы обычно воспринимают как формальность. Нужно было показать их как графический язык, в котором сочетаются контроль, навигация и образ территории.</p>\n          <p contenteditable=\"true\" style=\"margin-top:1em\">Задача — проследить, как визуальный язык штампов формирует образ мест, отражает культурные коды и становится частью национального брендинга.</p>\n        </div>\n        <div class=\"col-result\">\n          <span class=\"eyebrow\" contenteditable=\"true\">Результат</span>\n          <p contenteditable=\"true\">Книга, где сама вёрстка работает как штамп. Структура построена на ритме и повторе: синие кружки заменяют абзацные отступы, формируя единый поток, где каждая мысль — новая отметка о пересечении границы.</p>\n        </div>\n\n        <div class=\"slider has-media\" data-slider=\"\" data-sid=\"sl-4\" data-cur=\"1\">\n          <div class=\"slides\"><div class=\"slide\"><img src=\"blob:null/b3ba3629-8c71-4fb8-9474-04fb9256116f\"></div><div class=\"slide active\"><img src=\"blob:null/3e5a3d27-6479-4326-b6d5-b3e5818e1b1f\"></div><div class=\"slide\"><img src=\"blob:null/3c27eb19-85ae-4e3c-b70c-5be58d71602d\"></div><div class=\"slide\"><img src=\"blob:null/b112aee6-b4c5-48e7-8c75-0d6aa35c7b68\"></div><div class=\"slide\"><img src=\"blob:null/822a5aae-7274-41e5-b2ad-52d741b40940\"></div></div>\n          <div class=\"slider-empty\" onclick=\"addSlide(this)\" style=\"display: none;\">\n            Обложка / слайд-шоу<br>кликните, чтобы добавить слайды\n            <input type=\"file\" accept=\"image/*,video/*\" multiple=\"\" style=\"display:none\" onchange=\"onSlideFiles(this)\">\n          </div>\n          <div class=\"nav prev\" onclick=\"slidePrev(this)\"><span>‹</span></div>\n          <div class=\"nav next\" onclick=\"slideNext(this)\"><span>›</span></div>\n          <button class=\"add-slide\" onclick=\"addSlide(this)\">+ слайд</button>\n          <button class=\"del-slide\" title=\"Удалить этот слайд\" onclick=\"delSlide(this)\">🗑 слайд</button>\n          <button class=\"expand-slider\" title=\"На весь экран\" onclick=\"openSlider(this)\">⤢</button>\n          <div class=\"dots\"><div class=\"dot\"></div><div class=\"dot active\"></div><div class=\"dot\"></div><div class=\"dot\"></div><div class=\"dot\"></div></div>\n        </div>\n\n        <div class=\"research-link\" contenteditable=\"true\"><a href=\"#\">Изучить детали →</a></div>\n\n        <div class=\"deck has-media\" data-deck=\"\" onclick=\"openDeck(this)\" data-did=\"dk-4\">\n          <div class=\"stack\"><div class=\"card\"><img src=\"blob:null/a71ab37f-e3aa-48c4-b975-70f93ccf73e3\"></div><div class=\"card\"><img src=\"blob:null/0a3049dd-807a-49c7-b383-38173a36233b\"></div><div class=\"card\"><img src=\"blob:null/288fa4c4-ad80-4121-98d2-a864c2db6426\"></div></div>\n          <div class=\"empty\" onclick=\"addDeck(event,this)\" style=\"display: none;\">\n            презентация<br>+ загрузить слайды\n            <input type=\"file\" accept=\"image/*,video/*\" multiple=\"\" style=\"display:none\" onchange=\"onDeckFiles(this)\">\n          </div>\n          <div class=\"deck-cap\" style=\"\">Презентация →</div>\n        </div>\n\n        <div class=\"research-copy\" contenteditable=\"true\">\n          <p contenteditable=\"true\">В основе — гипотеза: дизайн штампов на границах и в туристических зонах отражает культурные и географические особенности региона, превращая их в визуальные коды, которые передают идентичность места без пояснений.</p>\n          <p contenteditable=\"true\" style=\"margin-top:1em\">Строгая система: формат 125×240, сетка на пять колонок, два шрифта (Franklin Gothic Cond и Formular), единственный акцентный цвет — синий 0092ff. Материал разбит по главам от международных штампов до локальной идентичности, а типографика везде подчинена метафоре границы и следа.</p>\n        </div>\n\n        <hr class=\"case-rule\">\n      </section>\n      <section class=\"g4 case\">\n        <div class=\"case-no\" contenteditable=\"true\">6</div>\n\n        <div class=\"col-brief\">\n          <span class=\"eyebrow\" contenteditable=\"true\">Кейс 6</span>\n          <p class=\"lede\" contenteditable=\"true\"><b>pop-up «ВЕЩЬ»</b></p>\n          <p contenteditable=\"true\">Brand Identity / 2026</p>\n          <p contenteditable=\"true\" style=\"margin-top:1em\">Айдентика pop-up пространства (от журнала Собака.ру), которое объединяет отобранные локальные бренды одежды, аксессуаров и предметного дизайна.</p>\n        </div>\n        <div class=\"col-task\">\n          <span class=\"eyebrow\" contenteditable=\"true\">Задача</span>\n          <p contenteditable=\"true\">Открывается на ограниченный период и собирает точку притяжения для аудитории, увлечённой модой и локальными брендами.</p>\n          <p contenteditable=\"true\" style=\"margin-top:1em\">Нужна была айдентика, которая покажет главное отличие проекта — это кураторский отбор, где каждая позиция выверена.</p>\n        </div>\n        <div class=\"col-result\">\n          <span class=\"eyebrow\" contenteditable=\"true\">Результат</span>\n          <p contenteditable=\"true\">ВЕЩЬ читается как тщательно отобранная подборка, собранная в одном временном пространстве. Характер бренда — сдержанный, структурный, селективный, но выразительный.</p>\n        </div>\n\n        <div class=\"slider has-media\" data-slider=\"\" data-sid=\"sl-5\" data-cur=\"3\">\n          <div class=\"slides\"><div class=\"slide\"><img src=\"blob:null/f2263a4c-67c3-4b89-bec5-0b4ddac3d6ef\"></div><div class=\"slide\"><img src=\"blob:null/b5f547e9-a76c-4702-9465-8dc54bb9c8f3\"></div><div class=\"slide\"><img src=\"blob:null/cf93c544-72dc-4853-ae5a-530c4eab9604\"></div><div class=\"slide active\"><img src=\"blob:null/2b86f71a-9fa6-4d68-96ce-00c9e20da049\"></div><div class=\"slide\"><img src=\"blob:null/442bff74-c27a-46da-beef-9ad65285ca94\"></div></div>\n          <div class=\"slider-empty\" onclick=\"addSlide(this)\" style=\"display: none;\">\n            Обложка / слайд-шоу<br>кликните, чтобы добавить слайды\n            <input type=\"file\" accept=\"image/*,video/*\" multiple=\"\" style=\"display:none\" onchange=\"onSlideFiles(this)\">\n          </div>\n          <div class=\"nav prev\" onclick=\"slidePrev(this)\"><span>‹</span></div>\n          <div class=\"nav next\" onclick=\"slideNext(this)\"><span>›</span></div>\n          <button class=\"add-slide\" onclick=\"addSlide(this)\">+ слайд</button>\n          <button class=\"del-slide\" title=\"Удалить этот слайд\" onclick=\"delSlide(this)\">🗑 слайд</button>\n          <button class=\"expand-slider\" title=\"На весь экран\" onclick=\"openSlider(this)\">⤢</button>\n          <div class=\"dots\"><div class=\"dot\"></div><div class=\"dot\"></div><div class=\"dot\"></div><div class=\"dot active\"></div><div class=\"dot\"></div></div>\n        </div>\n\n        <div class=\"research-link\" contenteditable=\"true\"><a href=\"#\">Изучить исследование →</a></div>\n\n        <div class=\"deck has-media\" data-deck=\"\" onclick=\"openDeck(this)\" data-did=\"dk-5\">\n          <div class=\"stack\"><div class=\"card\"><img src=\"blob:null/7a60c833-e8c4-4a7e-855a-374ab843363e\"></div><div class=\"card\"><img src=\"blob:null/33771e44-a5e1-4804-abce-141153bc6590\"></div><div class=\"card\"><img src=\"blob:null/1188f4bd-00b3-45c9-ab83-f4781b8d8137\"></div></div>\n          <div class=\"empty\" onclick=\"addDeck(event,this)\" style=\"display: none;\">\n            презентация<br>+ загрузить слайды\n            <input type=\"file\" accept=\"image/*,video/*\" multiple=\"\" style=\"display:none\" onchange=\"onDeckFiles(this)\">\n          </div>\n          <div class=\"deck-cap\" style=\"\">Презентация →</div>\n        </div>\n\n        <div class=\"research-copy\" contenteditable=\"true\">\n          <p contenteditable=\"true\">В основе — исследование рынка и аудитории. Конкуренты (маркет Московской недели моды, KM20, pop-up бренды) делают ставку на масштаб, а ВЕЩЬ отстраивается кураторством. Аудитория — горожане и туристы сегмента mid / mid-up, ценящие осознанный выбор.</p>\n          <p contenteditable=\"true\" style=\"margin-top:1em\">Главный инсайт: покупка становится выбором внутри уже отобранного списка, а не поиском среди избыточного ассортимента. Отсюда и метафора чека — знак списка, порядка и продуманного отбора, на которой держится вся система.</p>\n        </div>\n\n        <hr class=\"case-rule\">\n      </section>\n      <section class=\"g4 case\">\n        <div class=\"case-no\" contenteditable=\"true\">7</div>\n\n        <div class=\"col-brief\">\n          <span class=\"eyebrow\" contenteditable=\"true\">Кейс 7</span>\n          <p class=\"lede\" contenteditable=\"true\"><b>Типографика</b></p>\n          <p contenteditable=\"true\">Type Design / Identity / 2025</p>\n          <p contenteditable=\"true\" style=\"margin-top:.6em;color:#7ba7d4\"><font color=\"#96dbf4\">✱ Финалист конкурса DAFES</font></p>\n          <p contenteditable=\"true\" style=\"margin-top:1em\">Экспериментальная айдентика типографического фестиваля, где шрифт создан с помощью искусственного интеллекта.</p>\n        </div>\n        <div class=\"col-task\">\n          <span class=\"eyebrow\" contenteditable=\"true\">Задача</span>\n          <p contenteditable=\"true\">Исследовать искусственный интеллект как полноценный инструмент создания типографики, а не вспомогательное средство.</p>\n          <p contenteditable=\"true\" style=\"margin-top:1em\">Нужно было превратить единичный ИИ-эксперимент в цельную визуальную систему, которая держится на собственной логике формы.</p>\n        </div>\n        <div class=\"col-result\">\n          <span class=\"eyebrow\" contenteditable=\"true\">Результат</span>\n          <p contenteditable=\"true\">Из одного плаката выросла целая система: логика работы с ИИ, полноценный алфавит по тем же принципам формы и текстуры, а потом визуальный код масштабировался в айдентику фестиваля.</p>\n        </div>\n\n        <div class=\"slider has-media\" data-slider=\"\" data-sid=\"sl-6\" data-cur=\"1\">\n          <div class=\"slides\"><div class=\"slide\"><img src=\"blob:null/344c2173-491f-4084-b7df-b8a45b42f184\"></div><div class=\"slide active\"><img src=\"blob:null/fa597d79-b032-4761-a21a-cdcaa1401c50\"></div><div class=\"slide\"><img src=\"blob:null/1a2a5f7c-5867-47b6-af4d-70b168b26f03\"></div><div class=\"slide\"><img src=\"blob:null/fc16b439-370c-40d3-b298-8ffa22f23221\"></div><div class=\"slide\"><img src=\"blob:null/c75c0e5a-4ccf-46a4-a417-fe036a9f58b6\"></div><div class=\"slide\"><img src=\"blob:null/7ee8ad0d-a210-4b39-b7ef-697271135d40\"></div><div class=\"slide\"><img src=\"blob:null/13310a32-93d8-46e4-91a1-e0923a3f36fa\"></div><div class=\"slide\"><img src=\"blob:null/f8ce63da-27f7-495d-be88-3fb6fa3d4939\"></div><div class=\"slide\"><img src=\"blob:null/e0abb30f-507f-46b5-a51f-9edf7a97e61f\"></div><div class=\"slide\"><img src=\"blob:null/d950f8c4-52ea-4e30-aa27-2a1a3de38c7c\"></div></div>\n          <div class=\"slider-empty\" onclick=\"addSlide(this)\" style=\"display: none;\">\n            Обложка / слайд-шоу<br>кликните, чтобы добавить слайды\n            <input type=\"file\" accept=\"image/*,video/*\" multiple=\"\" style=\"display:none\" onchange=\"onSlideFiles(this)\">\n          </div>\n          <div class=\"nav prev\" onclick=\"slidePrev(this)\"><span>‹</span></div>\n          <div class=\"nav next\" onclick=\"slideNext(this)\"><span>›</span></div>\n          <button class=\"add-slide\" onclick=\"addSlide(this)\">+ слайд</button>\n          <button class=\"del-slide\" title=\"Удалить этот слайд\" onclick=\"delSlide(this)\">🗑 слайд</button>\n          <button class=\"expand-slider\" title=\"На весь экран\" onclick=\"openSlider(this)\">⤢</button>\n          <div class=\"dots\"><div class=\"dot\"></div><div class=\"dot active\"></div><div class=\"dot\"></div><div class=\"dot\"></div><div class=\"dot\"></div><div class=\"dot\"></div><div class=\"dot\"></div><div class=\"dot\"></div><div class=\"dot\"></div><div class=\"dot\"></div></div>\n        </div>\n\n        <div class=\"research-link\" contenteditable=\"true\"><a href=\"#\">Изучить исследование →</a></div>\n\n        <div class=\"deck\" data-deck=\"\" onclick=\"openDeck(this)\" data-did=\"dk-6\">\n          <div class=\"stack\"></div>\n          <div class=\"empty\" onclick=\"addDeck(event,this)\">\n            презентация<br>+ загрузить слайды\n            <input type=\"file\" accept=\"image/*,video/*\" multiple=\"\" style=\"display:none\" onchange=\"onDeckFiles(this)\">\n          </div>\n          <div class=\"deck-cap\" style=\"display: none;\">Презентация →</div>\n        </div>\n\n        <div class=\"research-copy\" contenteditable=\"true\">\n          <p contenteditable=\"true\">Проект построен как последовательное развитие одного приёма: от одного слова к знаку, от знака к алфавиту, от алфавита к айдентике. ИИ выступает соавтором формы, задающим характер букв, который дальше развивается вручную.</p>\n          <p contenteditable=\"true\" style=\"margin-top:1em\">Ключевая находка — фактура на пересечении рельефа и цифры: буквы выглядят одновременно осязаемыми и сгенерированными. Эта двойственность и становится темой фестиваля, зашитой прямо в шрифт.</p>\n        </div>\n\n        <hr class=\"case-rule\">\n      </section>\n    ","resume":"\n      <div class=\"g2 res-block\">\n        <div class=\"res-label\" contenteditable=\"true\">Profile</div>\n        <div class=\"res-body\" contenteditable=\"true\">\n          <p>Дизайнер визуальных систем и интерфейсов.</p>\n          <p>Работаю на стыке графического дизайна, интерфейсов и 3D, подбирая инструмент под задачу.</p>\n          <p>Интересуюсь типографикой и системным подходом — от печатных изданий до цифровых продуктов. Понимаю, как работает структура и визуальный ритм в разных медиумах.</p>\n          <p>В digital-проектах исследую взаимодействие с пользователем, в том числе с использованием AI-инструментов.</p>\n          <p>Работаю с айдентикой, интерфейсами и визуальными системами, адаптируя решения под контекст и формат.</p>\n          <p><a href=\"https://malito:tevszlata.graphic@yandex.com\" target=\"_blank\" rel=\"noopener\">tevszlata.graphic@yandex.com</a><br><a href=\"https://t.me/yazvad\" target=\"_blank\" rel=\"noopener\">telegram ↗</a></p>\n        </div>\n      </div>\n      <div class=\"g2 res-block\">\n        <div class=\"res-label\" contenteditable=\"true\">Education</div>\n        <div class=\"res-body\" contenteditable=\"true\">\n          <p>НИУ ВШЭ — Школа дизайна, Москва<br>2023 — 2027</p>\n          <p>Коммуникационный дизайн<br>4 курс</p>\n          <p>Работа с реальными и учебными брифами, участие в конкурсах, разработка айдентики, интерфейсов и печатных проектов.</p>\n        </div>\n      </div>\n      <div class=\"g2 res-block\">\n        <div class=\"res-label\" contenteditable=\"true\">Skills</div>\n        <div class=\"res-body\" contenteditable=\"true\">\n          <h4>Tools</h4>\n          <p>Figma<br>Adobe Photoshop<br>Illustrator<br>InDesign<br>Blender<br>After Effects<br>Tilda<br>Ai</p>\n          <h4 class=\"mt\">Design</h4>\n          <p>Айдентика — исследование, концепция, визуальная система<br>\n          Графический дизайн — печатные и digital-плакаты<br>\n          UI/UX — мобильные приложения, лендинги, лонгриды<br>\n          3D — моделирование объектов и пространств</p>\n        </div>\n      </div>\n      <div class=\"g2 res-block\">\n        <div class=\"res-label\" contenteditable=\"true\">Exhibitions</div>\n        <div class=\"res-body\" contenteditable=\"true\">\n          <p>Типографика DAFES<br>Москва, 2026</p>\n          <p>Плакат, отобранный для участия в выставке.</p>\n        </div>\n      </div>\n      <div class=\"g2 res-block\">\n        <div class=\"res-label\" contenteditable=\"true\">Awards</div>\n        <div class=\"res-body\" contenteditable=\"true\">\n          <p>✱ Выставка «Типографика DAFES» в Музее Москвы, 2025<br>Плакат на выставке<br>Проект финалист конкурса на айдентику фестиваля</p>\n          <p>✱ 2 место <a href=\"https://hsedesign.ru/competition/70048b9b70d1463ab0597b89fd2c4cc2\" target=\"_blank\" rel=\"noopener\">конкурса DAFES</a> — Коллекция мебели для annki «CLOVER SYSTEM»</p>\n          <p>✱ 5 проектов в шорт-листе конкурса DAFES</p>\n          <p>✱ 2 место конкурса на айдентику КВК «Ботанические оранжереи»</p>\n        </div>\n      </div>\n    ","headPhoto":"assets/img-108.jpg"};function mk(rec){let el;if((rec.type||'').startsWith('video')){el=document.createElement('video');el.src=rec.url;el.muted=true;el.loop=true;el.playsInline=true;el.autoplay=true;}else{el=document.createElement('img');el.src=rec.url;}return el;}document.querySelectorAll('[data-slider]').forEach(function(s,i){var arr=DATA.sliders[i]||[];var wrap=s.querySelector('.slides');if(!arr.length){s.style.display='none';return;}arr.forEach(function(rec){var d=document.createElement('div');d.className='slide';d.appendChild(mk(rec));wrap.appendChild(d);});var dots=s.querySelector('.dots');dots.innerHTML='';arr.forEach(function(_,k){var dt=document.createElement('div');dt.className='dot';dt.onclick=function(e){e.stopPropagation();set(k);};dots.appendChild(dt);});var cur=0;function set(j){var sl=[].slice.call(s.querySelectorAll('.slide'));j=(j+sl.length)%sl.length;sl.forEach(function(x,k){x.classList.toggle('active',k===j);});s.querySelectorAll('.dot').forEach(function(d,k){d.classList.toggle('active',k===j);});cur=j;}var t;function reset(){clearInterval(t);if(arr.length>1)t=setInterval(function(){set(cur+1);},3000);}s.querySelector('.nav.prev').onclick=function(e){e.stopPropagation();set(cur-1);reset();};s.querySelector('.nav.next').onclick=function(e){e.stopPropagation();set(cur+1);reset();};s.classList.add('has-media');var exp=s.querySelector('.expand-slider');if(exp)exp.onclick=function(e){e.stopPropagation();lbRecs=arr;lbIndex=cur;renderLB();document.getElementById('lightbox').classList.add('open');document.body.style.overflow='hidden';};set(0);reset();});var lbRecs=[],lbIndex=0;document.querySelectorAll('[data-deck]').forEach(function(d,i){var arr=DATA.decks[i]||[];if(!arr.length){d.style.display='none';return;}var stack=d.querySelector('.stack');var top3=arr.slice(0,3);var layers=[];for(var k=top3.length-1;k>=0;k--)layers.push(top3[k]);while(layers.length<3)layers.unshift(top3[0]);layers.forEach(function(rec){var c=document.createElement('div');c.className='card';c.appendChild(mk(rec));stack.appendChild(c);});d.onclick=function(){lbRecs=arr;lbIndex=0;renderLB();document.getElementById('lightbox').classList.add('open');document.body.style.overflow='hidden';};});function renderLB(){var f=document.getElementById('lb-frame');f.innerHTML='';var el=mk(lbRecs[lbIndex]);if(el.tagName==='VIDEO')el.controls=true;f.appendChild(el);document.getElementById('lb-counter').textContent=(lbIndex+1)+' / '+lbRecs.length;var th=document.getElementById('lb-thumbs');th.innerHTML='';lbRecs.forEach(function(rec,i){var t=document.createElement('div');t.className='lb-thumb'+(i===lbIndex?' active':'');t.appendChild(mk(rec));t.onclick=function(){lbIndex=i;renderLB();};th.appendChild(t);});var a=th.querySelector('.lb-thumb.active');if(a)a.scrollIntoView({inline:'center',block:'nearest'});}window.lbGo=function(dir){if(!lbRecs.length)return;lbIndex=(lbIndex+dir+lbRecs.length)%lbRecs.length;renderLB();};window.closeDeck=function(){document.getElementById('lightbox').classList.remove('open');document.body.style.overflow='';};document.addEventListener('keydown',function(e){if(!document.getElementById('lightbox').classList.contains('open'))return;if(e.key==='ArrowRight')lbGo(1);if(e.key==='ArrowLeft')lbGo(-1);if(e.key==='Escape')closeDeck();});</script>
+</body></html>
